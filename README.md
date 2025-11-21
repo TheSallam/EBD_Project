@@ -9,7 +9,7 @@
 
 ## 1. Team Members
 
-_List all team members (5-6 students) below._
+
 
 | Name             | Student ID | Tutorial Group | GitHub Username |
 | :--------------- | :--------- | :------------- | :-------------- |
@@ -27,7 +27,7 @@ _List all team members (5-6 students) below._
 _This project aims to empower smallholder farmers in Egypt by developing a digital B2B marketplace platform that connects them directly with verified local and international buyers. The solution breaks farmers’ dependence on middlemen by offering an online platform for transparent product listing, real-time pricing, and instant, secure digital payments. The platform captures transaction history to build credit profiles, making unbanked farmers eligible for financing and financial services. Through partnerships with agricultural cooperatives and integration with trusted providers like Meeza and CBE, the project targets over 2 million farmers and leverages Egypt’s expanding mobile coverage for rural inclusion. The goal is to increase farmer revenues, improve market access, and promote financial inclusion using a scalable, purpose-built fintech solution for Egypt’s agricultural sector._
 
 - **Concept:** [A digital platform connecting smallholder farmers directly with verified buyers to eliminate middlemen, provide transparent pricing, secure payments, and enable financial inclusion through transaction history and credit profiles.]
-- **Link to Fin-Tech Course Document:** [Insert Link if applicable]
+- **Link to Fin-Tech Course Document:** 
 
 ---
 
