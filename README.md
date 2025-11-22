@@ -1,4 +1,4 @@
-# [AgriFlow]
+# AgriFlow
 
 **Course:** Electronic Business Development (BINF 503)  
 **Semester:** Winter 2025  
