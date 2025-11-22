@@ -13,9 +13,9 @@
 
 | Name             | Student ID | Tutorial Group | GitHub Username |
 | :--------------- | :--------- | :------------- | :-------------- |
-| [Yusuf Sallam] | [13004663]       | [T8]           | [@username]     |
-| [Student 2 Name] | [ID]       | [T#]           | [@username]     |
-| [Student 3 Name] | [ID]       | [T#]           | [@username]     |
+| [Yusuf Sallam] | [13004663]       | [T8]           | [@TheSallam]     |
+| [Seif Ihab] | [ID]       | [T8]           | [@SeifSalem1]     |
+| [Student 3 Name] | [ID]       | [T8]           | [@username]     |
 | [Student 4 Name] | [ID]       | [T#]           | [@username]     |
 | [Student 5 Name] | [ID]       | [T#]           | [@username]     |
 | [Student 6 Name] | [ID]       | [T#]           | [@username]     |
