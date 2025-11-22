@@ -1,4 +1,4 @@
-# [Digital B2B Marketplace for Small Farmers in Egypt]
+# [AgriFlow]
 
 **Course:** Electronic Business Development (BINF 503)  
 **Semester:** Winter 2025  
