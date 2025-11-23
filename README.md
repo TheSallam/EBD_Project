@@ -62,11 +62,11 @@ _This project aims to empower smallholder farmers in Egypt by developing a digit
 
 | Team Member | Assigned Use Case       | Brief Description of Responsibility              |
 | :---------- | :---------------------- | :----------------------------------------------- |
-| [Student 1] | **User Authentication** | Register, Login, JWT handling, Password Hashing. |
+| [Adham] | **User Authentication** | Register, Login, JWT handling, Password Hashing. |
 | [Sallam] | [Product Listing by Farmers]            | Create, update, and manage product listings      |
 | [Sallam] | [Viewing Product Listings by Buyers]            | Browse and search products.          |
-| [Student 4] | [Basic Buyer Verification]            |Verify buyer credentials and status                     |
-| [Student 5] | [Recording Transaction History]            | Log purchase transactions and maintain history.                                    |
+| [Miriam] | [Basic Buyer Verification]            |Verify buyer credentials and status                     |
+| [Seif] | [Recording Transaction History]            | Log purchase transactions and maintain history.                                    |
 
 
 ---
