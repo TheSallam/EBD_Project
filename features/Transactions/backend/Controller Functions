@@ -1,0 +1,47 @@
+const Transaction = require('../models/Transaction');
+
+// 1. Logs a new purchase transaction (POST /api/transactions)
+exports.logPurchase = async (req, res) => {
+    try {
+        // Assume req.user.id is available from an authentication middleware
+        const { items, totalAmount, transactionId } = req.body;
+        
+        // Basic validation
+        if (!items || !totalAmount || !transactionId) {
+            return res.status(400).json({ msg: 'Missing transaction details.' });
+        }
+
+        const newTransaction = new Transaction({
+            // **NOTE:** Replace '12345' with the actual logged-in user ID
+            userId: req.user ? req.user.id : '12345', 
+            items,
+            totalAmount,
+            transactionId
+        });
+
+        const savedTransaction = await newTransaction.save();
+        
+        // Log the transaction and return success
+        res.status(201).json(savedTransaction);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error during logging.');
+    }
+};
+
+// 2. Retrieves a user's transaction history (GET /api/transactions)
+exports.getHistory = async (req, res) => {
+    try {
+        // **NOTE:** Replace '12345' with the actual logged-in user ID
+        const userId = req.user ? req.user.id : '12345';
+        
+        // Find all transactions for this user, sorted by newest first
+        const history = await Transaction.find({ userId: userId })
+                                         .sort({ createdAt: -1 });
+
+        res.json(history);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error during fetching history.');
+    }
+};

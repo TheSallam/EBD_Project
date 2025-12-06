@@ -1,0 +1,60 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useParams } from 'react-router-dom'; // Used to read the ID from the URL
+
+const TransactionDetails = () => {
+    // Get the ID (e.g., 'TXN-1689...') from the URL path: /history/:transactionId
+    const { transactionId } = useParams(); 
+    
+    const [transaction, setTransaction] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDetails = async () => {
+            try {
+                setLoading(true);
+                // The GET request now fetches ONE specific transaction by its ID
+                // You must update your backend Express route to handle this new endpoint!
+                const response = await axios.get(`/api/transactions/${transactionId}`); 
+                setTransaction(response.data);
+                setLoading(false);
+            } catch (err) {
+                console.error("Fetch error:", err);
+                setLoading(false);
+            }
+        };
+
+        if (transactionId) {
+            fetchDetails();
+        }
+    }, [transactionId]); // Re-run if the ID in the URL changes
+
+    if (loading) return <div>Loading Transaction Details for ID: {transactionId}...</div>;
+    if (!transaction) return <div>Transaction not found.</div>;
+
+    return (
+        <div className="transaction-detail">
+            <h3 style={{ borderBottom: '2px solid #007bff', paddingBottom: '5px' }}>
+                Details for Order: {transaction.transactionId}
+            </h3>
+            <p><strong>Purchase Date:</strong> {new Date(transaction.createdAt).toLocaleString()}</p>
+            <p><strong>Total Paid:</strong> **${transaction.totalAmount.toFixed(2)}**</p>
+            
+            <h4>Items Purchased:</h4>
+            <ul style={{ paddingLeft: '20px' }}>
+                {/* Loop through the items array stored in the transaction object */}
+                {transaction.items.map((item, index) => (
+                    <li key={index}>
+                        {item.qty} x {item.name} - ${item.price ? (item.qty * item.price).toFixed(2) : 'N/A'}
+                    </li>
+                ))}
+            </ul>
+            {/* Optional: Add a button to go back to the list */}
+            <Link to="/history" style={{ display: 'block', marginTop: '20px' }}>
+                &larr; Back to Transaction List
+            </Link>
+        </div>
+    );
+};
+
+export default TransactionDetails;

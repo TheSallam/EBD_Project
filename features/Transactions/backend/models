@@ -1,0 +1,39 @@
+const mongoose = require('mongoose');
+
+const transactionSchema = new mongoose.Schema({
+    // You should link this to your User model if authentication is set up
+    userId: {
+        type: mongoose.Schema.Types.ObjectId, 
+        required: true,
+        // Refers to your User model
+        ref: 'User' 
+    },
+    
+    // Details of the purchase (e.g., cart items)
+    items: {
+        type: Array,
+        required: true,
+        default: []
+    },
+    
+    // The total amount paid
+    totalAmount: {
+        type: Number,
+        required: true
+    },
+    
+    // A unique identifier for the transaction
+    transactionId: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    
+    // Mongoose automatically adds 'createdAt' and 'updatedAt'
+}, {
+    timestamps: true 
+});
+
+const Transaction = mongoose.model('Transaction', transactionSchema);
+
+module.exports = Transaction;
