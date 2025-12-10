@@ -1,0 +1,12 @@
+cookies.txt
+**/cookies.txt
+server/cookies.txt
+server/server/cookies.txt
+
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.local
+.env.*.local
