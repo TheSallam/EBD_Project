@@ -95,7 +95,7 @@ function TransactionsPage() {
                 <TableHead>Buyer</TableHead>
                 <TableHead className="text-center">Status</TableHead>
                 <TableHead className="text-center">Total (EGP)</TableHead>
-                {user?.role === 'farmer' && <TableHead className="text-right px-6">Action</TableHead>}
+                {user?.role === 'admin' && <TableHead className="text-right px-6">Action</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -141,7 +141,7 @@ function TransactionsPage() {
                       {t.totalPrice.toLocaleString()}
                     </TableCell>
 
-                    {user?.role === 'farmer' && (
+                    {user?.role === 'admin' && (
                       <TableCell className="text-right px-6">
                         <select 
                           className="bg-background border border-input text-foreground text-xs rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer hover:bg-accent"
