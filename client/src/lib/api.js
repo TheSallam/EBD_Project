@@ -1,14 +1,14 @@
 import axios from "axios";
 
-// 1. Get the base URL from Cloudflare (or use localhost)
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+// 1. Get the URL from Cloudflare
+const RAW_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-// 2. Ensure we append "/api" if it's not already there
-const API_URL = BASE_URL.endsWith("/api") ? BASE_URL : `${BASE_URL}/api`;
+// 2. Auto-fix: If it doesn't end with "/api", add it.
+const API_URL = RAW_URL.endsWith("/api") ? RAW_URL : `${RAW_URL}/api`;
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // Crucial for cookies/sessions
+  withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
@@ -18,5 +18,3 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
-
-export { api };
