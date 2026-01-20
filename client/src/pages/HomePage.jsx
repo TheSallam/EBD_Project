@@ -118,7 +118,7 @@ function HomePage() {
             <div className="rounded-lg border border-border bg-background p-4">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Total Revenue</p>
               <p className="mt-2 text-3xl font-bold text-foreground">
-                {loading ? "-" : `${stats.totalRevenue.toLocaleString()} EGP`}
+                {loading ? "-" : `${(stats.totalRevenue || 0).toLocaleString()} EGP`}
               </p>
               <p className="text-xs text-primary">Lifetime volume</p>
             </div>
