@@ -110,3 +110,13 @@
     @apply bg-background text-foreground antialiased transition-colors duration-300;
   }
 }
+/* ... existing code ... */
+
+/* --- MANUAL LOGO SWITCHING LOGIC --- */
+/* By default (Light Mode): Show Light Version, Hide Dark Version */
+.logo-light-mode { display: block !important; }
+.logo-dark-mode  { display: none !important; }
+
+/* When Dark Mode is Active: Hide Light Version, Show Dark Version */
+.dark .logo-light-mode { display: none !important; }
+.dark .logo-dark-mode  { display: block !important; }

@@ -15,13 +15,11 @@ function FarmerDashboardPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Form State
   const [formData, setFormData] = useState({ productName: "", pricePerUnit: "", quantity: "" });
 
-  // Modal State
   const [modalConfig, setModalConfig] = useState({ 
     isOpen: false, 
-    type: null, // 'delete' | 'publish'
+    type: null, 
     data: null 
   });
 
@@ -42,7 +40,6 @@ function FarmerDashboardPage() {
     if (user) fetchMyProducts();
   }, [user]);
 
-  // Open Modal Helpers
   const initiateDelete = (id) => {
     setModalConfig({ isOpen: true, type: 'delete', data: id });
   };
@@ -60,7 +57,6 @@ function FarmerDashboardPage() {
     setModalConfig(prev => ({ ...prev, isOpen: false }));
   };
 
-  // Actual Actions
   const performAction = async () => {
     if (modalConfig.type === 'delete') {
       const id = modalConfig.data;
@@ -85,7 +81,6 @@ function FarmerDashboardPage() {
     }
   };
 
-  // Dynamic Modal Content
   const getModalContent = () => {
     if (modalConfig.type === 'delete') {
       return {
@@ -117,14 +112,14 @@ function FarmerDashboardPage() {
         {...modalContent}
       />
 
-      {/* Left: Product List */}
       <div className="space-y-6">
         <div>
           <h2 className="text-3xl font-semibold tracking-tight">My Farm</h2>
           <p className="text-muted-foreground">Manage your active listings.</p>
         </div>
 
-        <Card className="border border-slate-800/80 bg-slate-950/70">
+        {/* FIX: Removed hardcoded bg-slate-950 and dark borders. Added standard bg-card and border-border */}
+        <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle>Current Listings</CardTitle>
           </CardHeader>
@@ -145,16 +140,18 @@ function FarmerDashboardPage() {
                  products.length === 0 ? <TableRow><TableCell colSpan={5}>No listings yet.</TableCell></TableRow> :
                  products.map((p) => (
                   <TableRow key={p._id}>
-                    <TableCell className="font-medium text-slate-200">{p.productName}</TableCell>
+                    {/* FIX: Changed text-slate-200 to standard text color */}
+                    <TableCell className="font-medium">{p.productName}</TableCell>
                     <TableCell>{p.quantity} kg</TableCell>
                     <TableCell>{p.pricePerUnit} EGP</TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${p.isAvailable ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
+                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${p.isAvailable ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-red-500/10 text-red-600 dark:text-red-400"}`}>
                         {p.isAvailable ? "Active" : "Sold Out"}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300 hover:bg-red-950/30" onClick={() => initiateDelete(p._id)}>
+                      {/* FIX: Adjusted hover colors to be theme-aware */}
+                      <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/30" onClick={() => initiateDelete(p._id)}>
                         Delete
                       </Button>
                     </TableCell>
@@ -167,9 +164,9 @@ function FarmerDashboardPage() {
         </Card>
       </div>
 
-      {/* Right: Add Product Form */}
       <div>
-        <Card className="border border-emerald-500/20 bg-slate-950/60 shadow-lg shadow-emerald-500/5 sticky top-6">
+        {/* FIX: Replaced slate backgrounds and emerald shadows with theme variables */}
+        <Card className="bg-card border-border shadow-lg sticky top-6">
           <CardHeader>
             <CardTitle>Post New Crop</CardTitle>
             <CardDescription>Add fresh produce to the market.</CardDescription>
@@ -178,10 +175,11 @@ function FarmerDashboardPage() {
             <form onSubmit={initiatePublish} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="productName">Crop Name</Label>
+                {/* FIX: Removed hardcoded slate background and border */}
                 <Input 
                   id="productName" 
                   placeholder="e.g. Potatoes" 
-                  className="bg-slate-900 border-slate-800"
+                  className="bg-background border-input"
                   value={formData.productName}
                   onChange={e => setFormData({...formData, productName: e.target.value})}
                 />
@@ -193,7 +191,7 @@ function FarmerDashboardPage() {
                     id="price" 
                     type="number" 
                     placeholder="0.00" 
-                    className="bg-slate-900 border-slate-800"
+                    className="bg-background border-input"
                     value={formData.pricePerUnit}
                     onChange={e => setFormData({...formData, pricePerUnit: e.target.value})}
                   />
@@ -204,12 +202,13 @@ function FarmerDashboardPage() {
                     id="quantity" 
                     type="number" 
                     placeholder="0" 
-                    className="bg-slate-900 border-slate-800"
+                    className="bg-background border-input"
                     value={formData.quantity}
                     onChange={e => setFormData({...formData, quantity: e.target.value})}
                   />
                 </div>
               </div>
+              {/* Note: bg-emerald-600 is fine as it's part of your primary brand color */}
               <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white">
                 Publish Listing
               </Button>

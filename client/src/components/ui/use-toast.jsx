@@ -27,12 +27,26 @@ function ToastProvider({ children }) {
 function useToast() {
   const ctx = React.useContext(ToastContext);
   if (!ctx) throw new Error("useToast must be used within <ToastProvider>");
+
+  const add = ctx.add;
+
+  // ✅ HELPER: Force Error Style (Red)
+  const error = (title, description = "") => {
+    add({ variant: "destructive", title, description });
+  };
+
+  // ✅ HELPER: Force Success Style (White/Dark)
+  const success = (title, description = "") => {
+    add({ variant: "default", title, description });
+  };
+
   return {
-    toast: ctx.add,
+    toast: add,
+    error,   // Use this for errors
+    success, // Use this for success
     dismiss: ctx.dismiss,
     toasts: ctx.toasts,
   };
 }
 
 export { ToastProvider, useToast };
-

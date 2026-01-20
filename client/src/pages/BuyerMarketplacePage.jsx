@@ -8,29 +8,28 @@ import { useToast } from "@/components/ui/use-toast.jsx";
 import ConfirmationModal from "@/components/ConfirmationModal";
 
 function BuyerMarketplacePage() {
-  const { toast } = useToast();
+  // ✅ USE THE NEW HELPERS
+  const { toast, error, success } = useToast();
+  
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loadingError, setLoadingError] = useState(null);
   
   const [quantities, setQuantities] = useState({}); 
-
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const pageSize = 6;
 
-  // Modal State
-  const [purchaseData, setPurchaseData] = useState(null); // { product, qty, total }
+  const [purchaseData, setPurchaseData] = useState(null); 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // UPDATED: Added 'isBackground' argument to prevent the spinner twitch
   const fetchProducts = async (isBackground = false) => {
     if (!isBackground) setLoading(true);
     try {
       const res = await api.get("/products");
       setProducts(res.data);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to load products.");
+      setLoadingError(err.response?.data?.message || "Failed to load products.");
     } finally {
       if (!isBackground) setLoading(false);
     }
@@ -63,11 +62,13 @@ function BuyerMarketplacePage() {
     const qty = Number(quantities[product._id] || 0);
 
     if (qty <= 0) {
-      toast({ variant: "destructive", title: "Invalid quantity", description: "Please enter a valid amount greater than 0." });
+      // ✅ USE error() helper -> Force Red
+      error("Invalid quantity", "Please enter a valid amount greater than 0.");
       return;
     }
     if (qty > product.quantity) {
-      toast({ variant: "destructive", title: "Stock exceeded", description: `Only ${product.quantity} kgs available.` });
+      // ✅ USE error() helper -> Force Red
+      error("Stock exceeded", `Only ${product.quantity} kgs available.`);
       return;
     }
 
@@ -83,25 +84,24 @@ function BuyerMarketplacePage() {
     try {
       await api.post("/transactions", { productId: product._id, quantityPurchased: qty });
       
-      toast({ title: "Purchase successful!", description: `Bought ${qty}kg of ${product.productName}` });
+      // ✅ USE success() helper -> Force White/Navy
+      success("Purchase successful!", `Bought ${qty}kg of ${product.productName}`);
       
-      // Clear input
       handleQtyChange(product._id, "");
 
-      // OPTIMISTIC UPDATE: Update UI immediately so it feels instant
       setProducts(prev => prev.map(p => {
         if (p._id === product._id) {
           return { ...p, quantity: p.quantity - qty };
         }
         return p;
-      }).filter(p => p.quantity > 0)); // Remove if quantity hits 0
+      }).filter(p => p.quantity > 0)); 
 
-      // BACKGROUND REFRESH: Sync with server without showing spinner
       fetchProducts(true);
 
     } catch (err) {
       const msg = err.response?.data?.message || "Request failed.";
-      toast({ variant: "destructive", title: "Request failed", description: msg });
+      // ✅ USE error() helper -> Force Red
+      error("Request failed", msg);
     }
   };
 
@@ -146,7 +146,7 @@ function BuyerMarketplacePage() {
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {loading && <p className="text-sm text-muted-foreground">Loading listings…</p>}
         
-        {!loading && !error && products.length === 0 && (
+        {!loading && !loadingError && products.length === 0 && (
           <p className="text-sm text-muted-foreground">No products available right now.</p>
         )}
 
@@ -216,7 +216,7 @@ function BuyerMarketplacePage() {
         })}
       </section>
 
-      {!loading && !error && filtered.total > pageSize && (
+      {!loading && !loadingError && filtered.total > pageSize && (
         <div className="flex items-center justify-end gap-3 text-sm text-muted-foreground">
           <span>Page {page} / {totalPages}</span>
           <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>Prev</Button>
