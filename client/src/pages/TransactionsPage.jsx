@@ -25,6 +25,7 @@ function TransactionsPage() {
       const res = await api.get("/transactions");
       setItems(res.data);
     } catch (err) {
+      console.error("Fetch error:", err);
       setError(err.response?.data?.message || "Failed to load transactions.");
     } finally {
       setLoading(false);
@@ -55,6 +56,34 @@ function TransactionsPage() {
       default: return 'text-amber-600 bg-amber-500/10 border-amber-500/20 dark:text-amber-400'; 
     }
   };
+
+  // ✅ HELPER: Safely format dates to avoid "undefined" crashes
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch (e) {
+      return "Invalid Date";
+    }
+  };
+
+  const formatTime = (dateString) => {
+    if (!dateString) return "";
+    try {
+      return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute:'2-digit' });
+    } catch (e) {
+      return "";
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="p-8 text-center text-red-500">
+        <p>Error loading transactions: {error}</p>
+        <button onClick={fetchTransactions} className="mt-4 underline">Try Again</button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto w-full py-6">
@@ -114,17 +143,19 @@ function TransactionsPage() {
               ) : (
                 items.map((t) => (
                   <TableRow key={t._id || t.id} className="border-border hover:bg-muted/50 transition-colors">
+                    {/* ✅ FIX: Safe Date Formatting */}
                     <TableCell className="px-6 text-muted-foreground whitespace-nowrap">
-                      {new Date(t.transactionDate).toLocaleDateString()}
+                      {formatDate(t.transactionDate)}
                       <span className="block text-xs text-muted-foreground/70">
-                        {new Date(t.transactionDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        {formatTime(t.transactionDate)}
                       </span>
                     </TableCell>
-                    {/* Changed text-slate-200 to text-foreground */}
+                    
                     <TableCell className="font-medium text-foreground">
+                      {/* ✅ FIX: Optional Chaining for deep properties */}
                       {t.productNameSnapshot || t.productId?.productName || "Unknown Product"}
                       <span className="block text-xs text-muted-foreground mt-0.5">
-                        {t.quantityPurchased} kg × {t.priceSnapshot || t.productId?.pricePerUnit || 0} EGP
+                        {t.quantityPurchased || 0} kg × {t.priceSnapshot || t.productId?.pricePerUnit || 0} EGP
                       </span>
                     </TableCell>
                     <TableCell className="text-foreground">
@@ -137,8 +168,9 @@ function TransactionsPage() {
                       </span>
                     </TableCell>
 
+                    {/* ✅ FIX: Check if totalPrice exists before calling .toLocaleString() */}
                     <TableCell className="text-center font-semibold text-primary">
-                      {t.totalPrice.toLocaleString()}
+                      {(t.totalPrice || 0).toLocaleString()}
                     </TableCell>
 
                     {user?.role === 'admin' && (
