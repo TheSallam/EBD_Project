@@ -5,15 +5,19 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useAuthUser } from "@/lib/auth";
-import { api } from "@/lib/api";
+import { api as myApi } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast"; 
 import ConfirmationModal from "@/components/ConfirmationModal";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 function FarmerDashboardPage() {
   const user = useAuthUser();
   const { toast } = useToast();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("token");
+  const productsQuery = useQuery(api.products.getMyProducts, { token });
+  const products = productsQuery || [];
+  const loading = productsQuery === undefined;
   
   const [formData, setFormData] = useState({ productName: "", pricePerUnit: "", quantity: "" });
 
@@ -23,22 +27,8 @@ function FarmerDashboardPage() {
     data: null 
   });
 
-  const fetchMyProducts = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get("/products/my-products");
-      setProducts(res.data);
-    } catch (err) {
-      console.error(err);
-      toast({ variant: "destructive", title: "Error", description: "Failed to load products." });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user) fetchMyProducts();
-  }, [user]);
+  const createProduct = useMutation(api.products.create);
+  const removeProduct = useMutation(api.products.remove);
 
   const initiateDelete = (id) => {
     setModalConfig({ isOpen: true, type: 'delete', data: id });
@@ -61,8 +51,7 @@ function FarmerDashboardPage() {
     if (modalConfig.type === 'delete') {
       const id = modalConfig.data;
       try {
-        await api.delete(`/products/${id}`);
-        setProducts(prev => prev.filter(p => p._id !== id));
+        await removeProduct({ token, id });
         toast({ title: "Deleted", description: "Listing removed." });
       } catch (err) {
         toast({ variant: "destructive", title: "Error", description: "Failed to delete listing." });
@@ -70,15 +59,20 @@ function FarmerDashboardPage() {
     } 
     else if (modalConfig.type === 'publish') {
       try {
-        const res = await api.post("/products", formData);
-        setProducts([res.data, ...products]);
+        await createProduct({
+          token,
+          productName: formData.productName,
+          pricePerUnit: Number(formData.pricePerUnit),
+          quantity: Number(formData.quantity)
+        });
         setFormData({ productName: "", pricePerUnit: "", quantity: "" });
         toast({ title: "Success", description: "Listing posted successfully!" });
       } catch (err) {
-        const msg = err.response?.data?.message || "Failed to add product";
+        const msg = err.message || "Failed to add product";
         toast({ variant: "destructive", title: "Action Denied", description: msg });
       }
     }
+    setModalConfig(prev => ({ ...prev, isOpen: false }));
   };
 
   const getModalContent = () => {

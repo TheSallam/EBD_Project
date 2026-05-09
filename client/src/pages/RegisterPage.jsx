@@ -4,9 +4,11 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { api } from "@/lib/api";
+import { api as myApi } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast.jsx";
 import { saveAuth } from "@/lib/auth";
+import { useAction } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 function RegisterPage() {
   const navigate = useNavigate();
@@ -20,6 +22,8 @@ function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
+  const register = useAction(api.auth.register);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -30,14 +34,19 @@ function RegisterPage() {
     setLoading(true);
     setMessage(null);
     try {
-      const res = await api.post("/auth/register", form);
-      const { token, user } = res.data;
+      const res = await register({
+        username: form.username,
+        email: form.email,
+        password: form.password,
+        role: form.role,
+      });
+      const { token, user } = res;
       saveAuth(token, user);
       setMessage({ type: "success", text: `Registered as ${user.role} (${user.email})` });
       toast({ title: "Registered", description: `Welcome, ${user.username || user.email}` });
       navigate("/");
     } catch (err) {
-      const text = err.response?.data?.message || "Registration failed.";
+      const text = err.message || "Registration failed.";
       setMessage({ type: "error", text });
       toast({ title: "Registration failed", description: text });
     } finally {
@@ -105,6 +114,7 @@ function RegisterPage() {
               >
                 <option value="farmer">Farmer</option>
                 <option value="buyer">Buyer</option>
+                <option value="admin">Admin</option>
               </select>
             </div>
             <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90" type="submit" disabled={loading}>

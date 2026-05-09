@@ -3,33 +3,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useAuthUser } from "@/lib/auth";
-import { api } from "@/lib/api";
-
+import { api as myApi } from "@/lib/api";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 function HomePage() {
   const navigate = useNavigate();
   const user = useAuthUser();
   
-  const [stats, setStats] = useState({
+  const statsData = useQuery(api.stats.get);
+  const loading = statsData === undefined;
+  const stats = statsData || {
     activeListings: 0,
     verifiedBuyers: 0,
     recentTransactions: 0,
     totalRevenue: 0
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await api.get("/stats");
-        setStats(res.data);
-      } catch (err) {
-        console.error("Failed to load stats", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStats();
-  }, []);
+  };
 
   const goFarmer = () => navigate("/farmer");
   const goBuyer = () => navigate("/market");

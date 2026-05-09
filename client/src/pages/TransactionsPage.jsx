@@ -1,42 +1,27 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { api } from "@/lib/api";
+import { api as myApi } from "@/lib/api";
 import { useAuthUser } from "@/lib/auth";
 import { useToast } from "@/components/ui/use-toast";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 function TransactionsPage() {
   const user = useAuthUser();
   const { toast } = useToast();
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("token");
+  const itemsQuery = useQuery(api.transactions.getTransactions, { token });
+  const items = itemsQuery || [];
+  const loading = itemsQuery === undefined;
   const [error, setError] = useState(null);
 
-  const fetchTransactions = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get("/transactions");
-      setItems(res.data);
-    } catch (err) {
-      console.error("Fetch error:", err);
-      // Don't crash, just show error
-      setError("Could not load data."); 
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTransactions();
-  }, []);
+  const updateStatus = useMutation(api.transactions.updateStatus);
 
   const handleStatusChange = async (transactionId, newStatus) => {
     try {
-      await api.patch(`/transactions/${transactionId}/status`, { status: newStatus });
+      await updateStatus({ token, id: transactionId, status: newStatus });
       toast({ title: "Updated", description: `Order status changed to ${newStatus}` });
-      setItems(prev => prev.map(t => 
-        (t._id === transactionId || t.id === transactionId) ? { ...t, status: newStatus } : t
-      ));
     } catch (err) {
       toast({ variant: "destructive", title: "Error", description: "Failed to update status" });
     }

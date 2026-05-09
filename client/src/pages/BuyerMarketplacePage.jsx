@@ -3,17 +3,19 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { api } from "@/lib/api";
+import { api as myApi } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast.jsx";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 function BuyerMarketplacePage() {
   // ✅ USE THE NEW HELPERS
   const { toast, error, success } = useToast();
   
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingError, setLoadingError] = useState(null);
+  const products = useQuery(api.products.getAll) || [];
+  const loading = products === undefined;
+  const loadingError = null;
   
   const [quantities, setQuantities] = useState({}); 
   const [search, setSearch] = useState("");
@@ -23,21 +25,7 @@ function BuyerMarketplacePage() {
   const [purchaseData, setPurchaseData] = useState(null); 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const fetchProducts = async (isBackground = false) => {
-    if (!isBackground) setLoading(true);
-    try {
-      const res = await api.get("/products");
-      setProducts(res.data);
-    } catch (err) {
-      setLoadingError(err.response?.data?.message || "Failed to load products.");
-    } finally {
-      if (!isBackground) setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  const createTransaction = useMutation(api.transactions.create);
 
   const filtered = useMemo(() => {
     const term = search.toLowerCase().trim();
@@ -82,24 +70,16 @@ function BuyerMarketplacePage() {
     const { product, qty } = purchaseData;
 
     try {
-      await api.post("/transactions", { productId: product._id, quantityPurchased: qty });
+      const token = localStorage.getItem("token");
+      await createTransaction({ token, productId: product._id, quantityPurchased: qty });
       
       // ✅ USE success() helper -> Force White/Navy
       success("Purchase successful!", `Bought ${qty}kg of ${product.productName}`);
       
       handleQtyChange(product._id, "");
-
-      setProducts(prev => prev.map(p => {
-        if (p._id === product._id) {
-          return { ...p, quantity: p.quantity - qty };
-        }
-        return p;
-      }).filter(p => p.quantity > 0)); 
-
-      fetchProducts(true);
-
+      setIsModalOpen(false);
     } catch (err) {
-      const msg = err.response?.data?.message || "Request failed.";
+      const msg = err.message || "Request failed.";
       // ✅ USE error() helper -> Force Red
       error("Request failed", msg);
     }

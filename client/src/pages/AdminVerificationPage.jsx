@@ -10,8 +10,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { api } from "@/lib/api";
-
+import { api as myApi } from "@/lib/api";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 const UserTable = ({ title, data, search, onSearchChange, page, onPageChange, onToggle, loading }) => {
   const pageSize = 5;
   
@@ -119,8 +120,11 @@ const UserTable = ({ title, data, search, onSearchChange, page, onPageChange, on
 };
 
 function AdminVerificationPage() {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("token");
+  const dataQuery = useQuery(api.verifications.getAll, { token });
+  const data = dataQuery || [];
+  const loading = dataQuery === undefined;
+  
   const [message, setMessage] = useState(null);
 
   const [buyerSearch, setBuyerSearch] = useState("");
@@ -128,20 +132,7 @@ function AdminVerificationPage() {
   const [farmerSearch, setFarmerSearch] = useState("");
   const [farmerPage, setFarmerPage] = useState(1);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const res = await api.get("/buyer-verification");
-        setData(res.data);
-      } catch (err) {
-        setMessage({ type: "error", text: "Failed to load users." });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
+  const toggleStatus = useMutation(api.verifications.toggleStatus);
 
   const farmers = useMemo(() => data.filter(d => d.userInfo.role === 'farmer'), [data]);
   const buyers = useMemo(() => data.filter(d => d.userInfo.role === 'buyer'), [data]);
@@ -149,10 +140,7 @@ function AdminVerificationPage() {
   const toggleVerification = async (userId, currentStatus) => {
     setMessage(null);
     try {
-      await api.put(`/buyer-verification/${userId}`, { status: !currentStatus });
-      setData((prev) => prev.map((item) => 
-        item.userInfo._id === userId ? { ...item, verifiedStatus: !currentStatus } : item
-      ));
+      await toggleStatus({ token, userId, status: !currentStatus });
       const action = !currentStatus ? "Verified" : "Unverified";
       setMessage({ type: "success", text: `User successfully ${action}.` });
     } catch (err) {

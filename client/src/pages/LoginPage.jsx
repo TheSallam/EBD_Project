@@ -4,9 +4,11 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { api } from "@/lib/api";
+import { api as myApi } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast.jsx";
 import { saveAuth } from "@/lib/auth";
+import { useAction } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -16,18 +18,16 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
+  const login = useAction(api.auth.login);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
 
     try {
-      const res = await api.post("/auth/login", {
-        email,
-        password,
-      });
-
-      const { token, user } = res.data;
+      const res = await login({ email, password });
+      const { token, user } = res;
       saveAuth(token, user);
 
       setMessage({ type: "success", text: `Logged in as ${user.role} (${user.email})` });
@@ -35,7 +35,7 @@ function LoginPage() {
       navigate("/");
     } catch (err) {
       const text =
-        err.response?.data?.message || "Login failed. Please check your credentials.";
+        err.message || "Login failed. Please check your credentials.";
       setMessage({ type: "error", text });
       toast({ title: "Login failed", description: text });
     } finally {
