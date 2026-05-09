@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,16 +10,20 @@ import { useToast } from "@/components/ui/use-toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { useTranslation } from "react-i18next";
 
 function FarmerDashboardPage() {
   const user = useAuthUser();
   const { toast } = useToast();
-  const token = localStorage.getItem("token");
+  const { t } = useTranslation();
+  const token = localStorage.getItem("token") || "";
   const productsQuery = useQuery(api.products.getMyProducts, { token });
   const products = productsQuery || [];
   const loading = productsQuery === undefined;
   
   const [formData, setFormData] = useState({ productName: "", pricePerUnit: "", quantity: "" });
+  const [selectedImage, setSelectedImage] = useState(null);
+  const imageInputRef = useRef(null);
 
   const [modalConfig, setModalConfig] = useState({ 
     isOpen: false, 
@@ -29,6 +33,7 @@ function FarmerDashboardPage() {
 
   const createProduct = useMutation(api.products.create);
   const removeProduct = useMutation(api.products.remove);
+  const generateUploadUrl = useMutation(api.products.generateUploadUrl);
 
   const initiateDelete = (id) => {
     setModalConfig({ isOpen: true, type: 'delete', data: id });
@@ -40,7 +45,13 @@ function FarmerDashboardPage() {
       toast({ variant: "destructive", description: "Please fill in all fields." });
       return;
     }
-    setModalConfig({ isOpen: true, type: 'publish', data: formData });
+    setModalConfig({ isOpen: true, type: 'publish', data: { ...formData, image: selectedImage } });
+  };
+
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedImage(e.target.files[0]);
+    }
   };
 
   const handleCloseModal = () => {
@@ -52,24 +63,39 @@ function FarmerDashboardPage() {
       const id = modalConfig.data;
       try {
         await removeProduct({ token, id });
-        toast({ title: "Deleted", description: "Listing removed." });
+        toast({ title: t("toast.deleted"), description: t("toast.listingRemoved") });
       } catch (err) {
-        toast({ variant: "destructive", title: "Error", description: "Failed to delete listing." });
+        toast({ variant: "destructive", title: t("toast.error"), description: t("toast.delFailed") });
       }
     } 
     else if (modalConfig.type === 'publish') {
       try {
+        let imageId = undefined;
+        if (selectedImage) {
+          const postUrl = await generateUploadUrl();
+          const result = await fetch(postUrl, {
+            method: "POST",
+            headers: { "Content-Type": selectedImage.type },
+            body: selectedImage,
+          });
+          const { storageId } = await result.json();
+          imageId = storageId;
+        }
+
         await createProduct({
           token,
           productName: formData.productName,
           pricePerUnit: Number(formData.pricePerUnit),
-          quantity: Number(formData.quantity)
+          quantity: Number(formData.quantity),
+          imageId
         });
         setFormData({ productName: "", pricePerUnit: "", quantity: "" });
-        toast({ title: "Success", description: "Listing posted successfully!" });
+        setSelectedImage(null);
+        if (imageInputRef.current) imageInputRef.current.value = "";
+        toast({ title: t("toast.success"), description: t("toast.postSuccess") });
       } catch (err) {
-        const msg = err.message || "Failed to add product";
-        toast({ variant: "destructive", title: "Action Denied", description: msg });
+        const msg = err.message || t("toast.reqFailed");
+        toast({ variant: "destructive", title: t("toast.actionDenied"), description: msg });
       }
     }
     setModalConfig(prev => ({ ...prev, isOpen: false }));
@@ -78,17 +104,17 @@ function FarmerDashboardPage() {
   const getModalContent = () => {
     if (modalConfig.type === 'delete') {
       return {
-        title: "Delete Listing?",
-        description: "This action cannot be undone. This listing will be permanently removed from the marketplace.",
-        confirmText: "Delete",
+        title: t("farmer.deleteListing"),
+        description: t("farmer.deleteListingDesc"),
+        confirmText: t("farmer.delete"),
         variant: "destructive"
       };
     }
     if (modalConfig.type === 'publish') {
       return {
-        title: "Publish Listing?",
-        description: `Are you sure you want to list ${formData.quantity}kg of ${formData.productName} for ${formData.pricePerUnit} EGP/kg?`,
-        confirmText: "Publish",
+        title: t("farmer.publishListing"),
+        description: t("farmer.publishListingDesc", { qty: formData.quantity, name: formData.productName, price: formData.pricePerUnit }),
+        confirmText: t("farmer.publish"),
         variant: "default"
       };
     }
@@ -108,24 +134,24 @@ function FarmerDashboardPage() {
 
       <div className="space-y-6">
         <div>
-          <h2 className="text-3xl font-semibold tracking-tight">My Farm</h2>
-          <p className="text-muted-foreground">Manage your active listings.</p>
+          <h2 className="text-3xl font-semibold tracking-tight">{t("farmer.title")}</h2>
+          <p className="text-muted-foreground">{t("farmer.desc")}</p>
         </div>
 
         {/* FIX: Removed hardcoded bg-slate-950 and dark borders. Added standard bg-card and border-border */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle>Current Listings</CardTitle>
+            <CardTitle>{t("farmer.currentListings")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Qty</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>{t("farmer.thProduct")}</TableHead>
+                  <TableHead>{t("farmer.thQty")}</TableHead>
+                  <TableHead>{t("farmer.thPrice")}</TableHead>
+                  <TableHead>{t("farmer.thStatus")}</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
@@ -134,19 +160,28 @@ function FarmerDashboardPage() {
                  products.length === 0 ? <TableRow><TableCell colSpan={5}>No listings yet.</TableCell></TableRow> :
                  products.map((p) => (
                   <TableRow key={p._id}>
-                    {/* FIX: Changed text-slate-200 to standard text color */}
-                    <TableCell className="font-medium">{p.productName}</TableCell>
+                    {/* FIX: Removed flex from TableCell to preserve table layout */}
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {p.imageUrl ? (
+                          <img src={p.imageUrl} alt={p.productName} className="w-8 h-8 rounded-md object-cover border border-border" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center text-xs text-muted-foreground border border-border">No img</div>
+                        )}
+                        {p.productName}
+                      </div>
+                    </TableCell>
                     <TableCell>{p.quantity} kg</TableCell>
-                    <TableCell>{p.pricePerUnit} EGP</TableCell>
+                    <TableCell>{p.pricePerUnit} {t("market.egp")}</TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${p.isAvailable ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-red-500/10 text-red-600 dark:text-red-400"}`}>
-                        {p.isAvailable ? "Active" : "Sold Out"}
+                        {p.isAvailable ? t("farmer.statusActive") : t("farmer.statusSold")}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
                       {/* FIX: Adjusted hover colors to be theme-aware */}
                       <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/30" onClick={() => initiateDelete(p._id)}>
-                        Delete
+                        {t("farmer.deleteBtn")}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -162,13 +197,13 @@ function FarmerDashboardPage() {
         {/* FIX: Replaced slate backgrounds and emerald shadows with theme variables */}
         <Card className="bg-card border-border shadow-lg sticky top-6">
           <CardHeader>
-            <CardTitle>Post New Crop</CardTitle>
-            <CardDescription>Add fresh produce to the market.</CardDescription>
+            <CardTitle>{t("farmer.postNew")}</CardTitle>
+            <CardDescription>{t("farmer.postDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={initiatePublish} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="productName">Crop Name</Label>
+                <Label htmlFor="productName">{t("farmer.cropName")}</Label>
                 {/* FIX: Removed hardcoded slate background and border */}
                 <Input 
                   id="productName" 
@@ -180,7 +215,7 @@ function FarmerDashboardPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price (EGP)</Label>
+                  <Label htmlFor="price">{t("farmer.priceEgp")}</Label>
                   <Input 
                     id="price" 
                     type="number" 
@@ -191,7 +226,7 @@ function FarmerDashboardPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="quantity">Qty (kg)</Label>
+                  <Label htmlFor="quantity">{t("farmer.qtyKg")}</Label>
                   <Input 
                     id="quantity" 
                     type="number" 
@@ -202,9 +237,20 @@ function FarmerDashboardPage() {
                   />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="image">Crop Image (Optional)</Label>
+                <Input 
+                  id="image" 
+                  type="file" 
+                  accept="image/*"
+                  className="bg-background border-input cursor-pointer"
+                  ref={imageInputRef}
+                  onChange={handleImageChange}
+                />
+              </div>
               {/* Note: bg-emerald-600 is fine as it's part of your primary brand color */}
               <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white">
-                Publish Listing
+                {t("farmer.publishBtn")}
               </Button>
             </form>
           </CardContent>

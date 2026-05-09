@@ -9,12 +9,14 @@ import { useToast } from "@/components/ui/use-toast.jsx";
 import { saveAuth } from "@/lib/auth";
 import { useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { useTranslation } from "react-i18next";
 
 function LoginPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [email, setEmail] = useState("buyer1@test.com");
-  const [password, setPassword] = useState("123456");
+  const { t } = useTranslation();
+  const [email, setEmail] = useState("admin@agriflow.com");
+  const [password, setPassword] = useState("password123");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
@@ -31,13 +33,14 @@ function LoginPage() {
       saveAuth(token, user);
 
       setMessage({ type: "success", text: `Logged in as ${user.role} (${user.email})` });
-      toast({ title: "Logged in", description: `Welcome back, ${user.username || user.email}` });
+      toast({ title: t("toast.loggedIn"), description: `${t("toast.welcomeBack")} ${user.username || user.email}` });
       navigate("/");
     } catch (err) {
       const text =
         err.message || "Login failed. Please check your credentials.";
+      const msg = err.message || t("toast.loginFailed");
+      toast({ variant: "destructive", title: t("toast.loginFailed"), description: msg });
       setMessage({ type: "error", text });
-      toast({ title: "Login failed", description: text });
     } finally {
       setLoading(false);
     }
@@ -50,16 +53,16 @@ function LoginPage() {
       <Card className="w-full max-w-md shadow-2xl border border-border bg-card">
         <CardHeader>
           <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
-            Welcome back
+            {t("login.title")}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Sign in to AgriFlow to manage listings and marketplace activity.
+            {t("login.desc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={handleLogin}>
             <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("login.email")}</Label>
               {/* Updated Input colors */}
               <Input
                 id="email"
@@ -73,7 +76,7 @@ function LoginPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t("login.password")}</Label>
               <Input
                 id="password"
                 type="password"
@@ -86,7 +89,7 @@ function LoginPage() {
               />
             </div>
             <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={loading}>
-              {loading ? "Logging in..." : "Login"}
+              {loading ? t("login.btnLoading") : t("login.btn")}
             </Button>
           </form>
         </CardContent>
@@ -102,9 +105,8 @@ function LoginPage() {
               {message.text}
             </p>
           )}
-          <p className="text-xs text-muted-foreground">
-            Test users: e.g. <code className="bg-muted px-1 py-0.5 rounded">buyer1@test.com / 123456</code> or any account you
-            created in Postman.
+          <p className="text-xs text-muted-foreground mt-4">
+            {t("login.testUsers")}
           </p>
         </CardFooter>
       </Card>

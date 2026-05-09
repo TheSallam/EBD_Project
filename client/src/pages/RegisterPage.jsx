@@ -9,10 +9,12 @@ import { useToast } from "@/components/ui/use-toast.jsx";
 import { saveAuth } from "@/lib/auth";
 import { useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { useTranslation } from "react-i18next";
 
 function RegisterPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     username: "",
     email: "",
@@ -29,7 +31,7 @@ function RegisterPage() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
@@ -43,12 +45,11 @@ function RegisterPage() {
       const { token, user } = res;
       saveAuth(token, user);
       setMessage({ type: "success", text: `Registered as ${user.role} (${user.email})` });
-      toast({ title: "Registered", description: `Welcome, ${user.username || user.email}` });
+      toast({ title: t("toast.registered"), description: t("toast.welcome", { name: user.username || user.email }) });
       navigate("/");
     } catch (err) {
-      const text = err.message || "Registration failed.";
-      setMessage({ type: "error", text });
-      toast({ title: "Registration failed", description: text });
+      const msg = err.message || t("toast.regFailed");
+      toast({ variant: "destructive", title: t("toast.regFailed"), description: msg });
     } finally {
       setLoading(false);
     }
@@ -57,15 +58,19 @@ function RegisterPage() {
   return (
     <div className="flex justify-center">
       {/* Updated Card */}
-      <Card className="w-full max-w-md border border-border bg-card shadow-lg">
+      <Card className="w-full max-w-md border border-border bg-card shadow-2xl">
         <CardHeader>
-          <CardTitle className="text-foreground">Create your account</CardTitle>
-          <CardDescription className="text-muted-foreground">Connect to the live API.</CardDescription>
+          <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
+            {t("register.title")}
+          </CardTitle>
+          <CardDescription className="text-muted-foreground">
+            {t("register.desc")}
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+        <CardContent>
+          <form className="space-y-4" onSubmit={handleRegister}>
+            <div className="space-y-1.5">
+              <Label htmlFor="username">{t("register.username")}</Label>
               <Input
                 id="username"
                 name="username"
@@ -76,8 +81,8 @@ function RegisterPage() {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="email">{t("register.email")}</Label>
               <Input
                 id="email"
                 name="email"
@@ -89,8 +94,8 @@ function RegisterPage() {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="password">{t("register.password")}</Label>
               <Input
                 id="password"
                 name="password"
@@ -102,23 +107,22 @@ function RegisterPage() {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="role">{t("register.role")}</Label>
               <select
                 id="role"
                 name="role"
                 value={form.role}
                 onChange={handleChange}
-                className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-foreground focus:ring-1 focus:ring-primary focus:outline-none"
-                required
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
-                <option value="farmer">Farmer</option>
-                <option value="buyer">Buyer</option>
-                <option value="admin">Admin</option>
+                <option value="farmer">{t("register.roleFarmer")}</option>
+                <option value="buyer">{t("register.roleBuyer")}</option>
+                <option value="admin">{t("register.roleAdmin")}</option>
               </select>
             </div>
             <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90" type="submit" disabled={loading}>
-              {loading ? "Registering..." : "Register"}
+              {loading ? t("register.btnLoading") : t("register.btn")}
             </Button>
           </form>
         </CardContent>

@@ -13,7 +13,8 @@ import { Input } from "@/components/ui/input";
 import { api as myApi } from "@/lib/api";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-const UserTable = ({ title, data, search, onSearchChange, page, onPageChange, onToggle, loading }) => {
+import { useTranslation } from "react-i18next";
+const UserTable = ({ title, t, data, search, onSearchChange, page, onPageChange, onToggle, loading }) => {
   const pageSize = 5;
   
   const filtered = useMemo(() => {
@@ -37,11 +38,11 @@ const UserTable = ({ title, data, search, onSearchChange, page, onPageChange, on
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg text-foreground">{title}</CardTitle>
-            <CardDescription>Total: {data.length}</CardDescription>
+            <CardDescription>{t("admin.total")}: {data.length}</CardDescription>
           </div>
           <div className="w-40">
             <Input
-              placeholder="Search..."
+              placeholder={t("admin.search")}
               value={search}
               onChange={(e) => {
                 onSearchChange(e.target.value);
@@ -58,16 +59,16 @@ const UserTable = ({ title, data, search, onSearchChange, page, onPageChange, on
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
-              <TableHead className="pl-4">User</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right pr-4">Action</TableHead>
+              <TableHead className="pl-4">{t("admin.thUser")}</TableHead>
+              <TableHead>{t("admin.thStatus")}</TableHead>
+              <TableHead className="text-right pr-4">{t("admin.thAction")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={3} className="text-center py-4 text-muted-foreground">Loading...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={3} className="text-center py-4 text-muted-foreground">{t("admin.loading")}</TableCell></TableRow>
             ) : filtered.data.length === 0 ? (
-              <TableRow><TableCell colSpan={3} className="text-center py-4 text-muted-foreground">No records found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={3} className="text-center py-4 text-muted-foreground">{t("admin.empty")}</TableCell></TableRow>
             ) : (
               filtered.data.map((row) => (
                 <TableRow key={row.userInfo._id} className="border-border hover:bg-muted/50 transition-colors">
@@ -81,7 +82,7 @@ const UserTable = ({ title, data, search, onSearchChange, page, onPageChange, on
                         ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-500/20" 
                         : "bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-500/20"
                     }`}>
-                      {row.verifiedStatus ? "Verified" : "Pending"}
+                      {row.verifiedStatus ? t("admin.statusVerified") : t("admin.statusPending")}
                     </span>
                   </TableCell>
                   <TableCell className="text-right pr-4">
@@ -95,7 +96,7 @@ const UserTable = ({ title, data, search, onSearchChange, page, onPageChange, on
                           : "text-emerald-500 hover:text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/20"
                       }`}
                     >
-                      {row.verifiedStatus ? "Revoke" : "Approve"}
+                      {row.verifiedStatus ? t("admin.btnRevoke") : t("admin.btnApprove")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -108,7 +109,7 @@ const UserTable = ({ title, data, search, onSearchChange, page, onPageChange, on
       
       {!loading && filtered.total > pageSize && (
         <div className="flex items-center justify-between border-t border-border p-3 text-xs">
-          <span className="text-muted-foreground">Page {page} of {totalPages}</span>
+          <span className="text-muted-foreground">{t("admin.pageOf")} {page} / {totalPages}</span>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="h-7 w-7 p-0 border-input" onClick={() => onPageChange(p => Math.max(1, p - 1))} disabled={page === 1}>&lt;</Button>
             <Button variant="outline" size="sm" className="h-7 w-7 p-0 border-input" onClick={() => onPageChange(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>&gt;</Button>
@@ -120,7 +121,8 @@ const UserTable = ({ title, data, search, onSearchChange, page, onPageChange, on
 };
 
 function AdminVerificationPage() {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") || "";
+  const { t } = useTranslation();
   const dataQuery = useQuery(api.verifications.getAll, { token });
   const data = dataQuery || [];
   const loading = dataQuery === undefined;
@@ -141,20 +143,20 @@ function AdminVerificationPage() {
     setMessage(null);
     try {
       await toggleStatus({ token, userId, status: !currentStatus });
-      const action = !currentStatus ? "Verified" : "Unverified";
-      setMessage({ type: "success", text: `User successfully ${action}.` });
+      const actionText = !currentStatus ? t("toast.userVerified") : t("toast.userUnverified");
+      setMessage({ type: "success", text: actionText });
     } catch (err) {
-      setMessage({ type: "error", text: "Failed to update status." });
+      setMessage({ type: "error", text: t("toast.updateStatusFailed") });
     }
   };
 
   return (
     <div className="space-y-6 h-[calc(100vh-140px)] flex flex-col">
       <div className="flex flex-col gap-1 flex-shrink-0">
-        <p className="text-xs uppercase tracking-[0.25em] text-primary font-bold">Admin Console</p>
-        <h2 className="text-3xl font-semibold tracking-tight text-foreground">User Verification</h2>
+        <p className="text-xs uppercase tracking-[0.25em] text-primary font-bold">{t("admin.console")}</p>
+        <h2 className="text-3xl font-semibold tracking-tight text-foreground">{t("admin.title")}</h2>
         <p className="text-sm text-muted-foreground">
-          Manage access for all platform participants.
+          {t("admin.desc")}
         </p>
         {message && (
           <div className={`mt-2 text-sm px-3 py-2 rounded-md border ${
@@ -169,7 +171,8 @@ function AdminVerificationPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
         <UserTable 
-          title="Buyers" 
+          title={t("admin.buyersTitle")}
+          t={t}
           data={buyers}
           search={buyerSearch}
           onSearchChange={setBuyerSearch}
@@ -179,7 +182,8 @@ function AdminVerificationPage() {
           loading={loading}
         />
         <UserTable 
-          title="Farmers" 
+          title={t("admin.farmersTitle")} 
+          t={t}
           data={farmers}
           search={farmerSearch}
           onSearchChange={setFarmerSearch}

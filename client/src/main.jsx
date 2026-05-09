@@ -5,6 +5,7 @@ import App from "./App.jsx";
 import "./index.css";
 import { Toaster, ToastProvider } from "@/components/ui/toaster.jsx";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
+import "./i18n";
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
 

@@ -24,9 +24,12 @@ export default defineSchema({
     quantity: v.number(),
     pricePerUnit: v.number(),
     description: v.optional(v.string()),
+    imageId: v.optional(v.id("_storage")), // Image support
     isAvailable: v.boolean(),
     dateListed: v.number(),
-  }).index("by_farmerId", ["farmerId"]),
+  })
+    .index("by_farmerId", ["farmerId"])
+    .searchIndex("search_name", { searchField: "productName" }), // Server-side search
 
   buyerVerifications: defineTable({
     buyerId: v.id("users"),

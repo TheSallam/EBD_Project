@@ -3,24 +3,31 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { logout, useAuthUser } from "@/lib/auth";
 import { ThemeToggle } from "./ThemeToggle";
+import { useTranslation } from "react-i18next";
 
 function Navbar() {
   const navigate = useNavigate();
   const user = useAuthUser();
-  const [isOpen, setIsOpen] = useState(false); // Mobile menu state
+  const [isOpen, setIsOpen] = useState(false); 
+  const { t, i18n } = useTranslation();
 
   const links = [
-    { to: "/", label: "Home" },
-    { to: "/market", label: "Marketplace" },
-    ...(user?.role === "farmer" ? [{ to: "/farmer", label: "Farmer" }] : []),
-    ...(user?.role === "admin" ? [{ to: "/admin/verification", label: "Admin" }] : []),
-    { to: "/transactions", label: "Transactions" },
+    { to: "/", label: t('navbar.Home') },
+    { to: "/market", label: t('navbar.Marketplace') },
+    ...(user?.role === "farmer" ? [{ to: "/farmer", label: t('navbar.Farmer') }] : []),
+    ...(user?.role === "admin" ? [{ to: "/admin/verification", label: t('navbar.Admin') }] : []),
+    { to: "/transactions", label: t('navbar.Transactions') },
   ];
 
   const handleLogout = () => {
     logout();
     navigate("/login");
     setIsOpen(false);
+  };
+
+  const toggleLang = () => {
+    const newLang = i18n.language.startsWith('ar') ? 'en' : 'ar';
+    i18n.changeLanguage(newLang);
   };
 
   return (
@@ -47,22 +54,28 @@ function Navbar() {
 
         {/* DESKTOP ACTIONS */}
         <div className="hidden md:flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={toggleLang} className="font-bold">
+            {i18n.language.startsWith('ar') ? 'EN' : 'AR'}
+          </Button>
           <ThemeToggle />
           {user ? (
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Hi, {user.username}</span>
-              <Button variant="ghost" size="sm" onClick={handleLogout}>Logout</Button>
+              <span className="text-xs text-muted-foreground">{t('navbar.Signed in as')} {user.username}</span>
+              <Button variant="ghost" size="sm" onClick={handleLogout}>{t('navbar.Logout')}</Button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <NavLink to="/login"><Button variant="ghost" size="sm">Login</Button></NavLink>
-              <NavLink to="/register"><Button size="sm">Get Started</Button></NavLink>
+              <NavLink to="/login"><Button variant="ghost" size="sm">{t('navbar.Login')}</Button></NavLink>
+              <NavLink to="/register"><Button size="sm">{t('navbar.Get Started')}</Button></NavLink>
             </div>
           )}
         </div>
 
         {/* MOBILE TOGGLE: Visible only on small screens */}
         <div className="flex md:hidden items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={toggleLang} className="font-bold">
+            {i18n.language.startsWith('ar') ? 'EN' : 'AR'}
+          </Button>
           <ThemeToggle />
           <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)}>
             {/* Hamburger Icon / Close Icon */}
@@ -97,13 +110,13 @@ function Navbar() {
           <div className="border-t border-border pt-4 flex flex-col gap-3">
             {user ? (
               <>
-                <p className="text-sm text-muted-foreground px-2">Signed in as <span className="font-semibold text-foreground">{user.username}</span></p>
-                <Button onClick={handleLogout} className="w-full" variant="destructive">Logout</Button>
+                <p className="text-sm text-muted-foreground px-2">{t('navbar.Signed in as')} <span className="font-semibold text-foreground">{user.username}</span></p>
+                <Button onClick={handleLogout} className="w-full" variant="destructive">{t('navbar.Logout')}</Button>
               </>
             ) : (
               <>
-                <NavLink to="/login" onClick={() => setIsOpen(false)}><Button variant="outline" className="w-full">Login</Button></NavLink>
-                <NavLink to="/register" onClick={() => setIsOpen(false)}><Button className="w-full">Get Started</Button></NavLink>
+                <NavLink to="/login" onClick={() => setIsOpen(false)}><Button variant="outline" className="w-full">{t('navbar.Login')}</Button></NavLink>
+                <NavLink to="/register" onClick={() => setIsOpen(false)}><Button className="w-full">{t('navbar.Get Started')}</Button></NavLink>
               </>
             )}
           </div>

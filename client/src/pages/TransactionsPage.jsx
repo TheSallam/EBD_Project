@@ -6,11 +6,13 @@ import { useAuthUser } from "@/lib/auth";
 import { useToast } from "@/components/ui/use-toast";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { useTranslation } from "react-i18next";
 
 function TransactionsPage() {
   const user = useAuthUser();
   const { toast } = useToast();
-  const token = localStorage.getItem("token");
+  const { t } = useTranslation();
+  const token = localStorage.getItem("token") || "";
   const itemsQuery = useQuery(api.transactions.getTransactions, { token });
   const items = itemsQuery || [];
   const loading = itemsQuery === undefined;
@@ -21,9 +23,9 @@ function TransactionsPage() {
   const handleStatusChange = async (transactionId, newStatus) => {
     try {
       await updateStatus({ token, id: transactionId, status: newStatus });
-      toast({ title: "Updated", description: `Order status changed to ${newStatus}` });
+      toast({ title: t("toast.updated"), description: t("toast.orderStatusChanged", { status: newStatus }) });
     } catch (err) {
-      toast({ variant: "destructive", title: "Error", description: "Failed to update status" });
+      toast({ variant: "destructive", title: t("toast.error"), description: t("toast.updateStatusFailed") });
     }
   };
 
@@ -40,32 +42,32 @@ function TransactionsPage() {
     <div className="space-y-8 max-w-5xl mx-auto w-full py-6">
       <div className="flex flex-col gap-3 items-center text-center">
         <h2 className="text-4xl font-bold tracking-tight text-foreground">
-          {user?.role === "farmer" ? "My Sales" : "Transaction History"}
+          {user?.role === "farmer" ? t("tx.titleMySales") : t("tx.titleHistory")}
         </h2>
       </div>
 
       <Card className="border border-border bg-card shadow-xl">
         <CardHeader className="pb-4 border-b border-border">
-          <CardTitle className="text-xl">Orders</CardTitle>
+          <CardTitle className="text-xl">{t("tx.orders")}</CardTitle>
         </CardHeader>
         <CardContent className="px-0">
           <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent border-border">
-                <TableHead>Date</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead>Buyer</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-center">Total (EGP)</TableHead>
-                {user?.role === 'admin' && <TableHead className="text-right px-6">Action</TableHead>}
+                <TableHead>{t("tx.thDate")}</TableHead>
+                <TableHead>{t("tx.thProduct")}</TableHead>
+                <TableHead>{t("tx.thBuyer")}</TableHead>
+                <TableHead className="text-center">{t("tx.thStatus")}</TableHead>
+                <TableHead className="text-center">{t("tx.thTotal")}</TableHead>
+                {user?.role === 'admin' && <TableHead className="text-right px-6">{t("tx.thAction")}</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={6} className="text-center py-8">Loading...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-8">{t("tx.loading")}</TableCell></TableRow>
               ) : items.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="text-center py-8">No transactions found.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-8">{t("tx.empty")}</TableCell></TableRow>
               ) : (
                 items.map((t) => (
                   <TableRow key={t._id || t.id}>

@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 const ConfirmationModal = ({ 
   isOpen, 
@@ -7,12 +8,14 @@ const ConfirmationModal = ({
   onConfirm, 
   title, 
   description, 
-  confirmText = "Continue", 
-  cancelText = "Cancel",
-  variant = "default" // "default" | "destructive"
+  confirmText, 
+  cancelText,
+  variant = "default" 
 }) => {
+  const { t } = useTranslation();
+  
   // Prevent scrolling when modal is open
-  useEffect(() => {
+  React.useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -42,7 +45,7 @@ const ConfirmationModal = ({
         </div>
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2 sm:gap-0">
           <Button variant="outline" onClick={onClose}>
-            {cancelText}
+            {cancelText || t("modal.cancel")}
           </Button>
           <Button 
             variant={variant} 
@@ -51,7 +54,7 @@ const ConfirmationModal = ({
               onClose();
             }}
           >
-            {confirmText}
+            {confirmText || t("modal.continue")}
           </Button>
         </div>
       </div>

@@ -4,16 +4,25 @@ import { getAuthenticatedUser } from "./authHelper";
 
 // Get all products (Public/Buyers can see)
 export const getAll = query({
-  args: {},
-  handler: async (ctx) => {
-    const products = await ctx.db.query("products")
-      .filter((q) => q.eq(q.field("isAvailable"), true))
-      .collect();
+  args: { search: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    let products;
+    if (args.search) {
+      products = await ctx.db.query("products")
+        .withSearchIndex("search_name", (q) => q.search("productName", args.search))
+        .collect();
+      products = products.filter(p => p.isAvailable === true);
+    } else {
+      products = await ctx.db.query("products")
+        .filter((q) => q.eq(q.field("isAvailable"), true))
+        .collect();
+    }
       
     return await Promise.all(
       products.map(async (p) => {
         const farmer = await ctx.db.get(p.farmerId);
-        return { ...p, farmerId: { _id: farmer._id, username: farmer.username } };
+        const imageUrl = p.imageId ? await ctx.storage.getUrl(p.imageId) : null;
+        return { ...p, imageUrl, farmerId: { _id: farmer._id, username: farmer.username } };
       })
     );
   },
@@ -30,8 +39,15 @@ export const getMyProducts = query({
       .withIndex("by_farmerId", (q) => q.eq("farmerId", user._id))
       .collect();
       
+    const productsWithImages = await Promise.all(
+      products.map(async (p) => {
+        const imageUrl = p.imageId ? await ctx.storage.getUrl(p.imageId) : null;
+        return { ...p, imageUrl };
+      })
+    );
+      
     // Sort descending by dateListed
-    return products.sort((a, b) => b.dateListed - a.dateListed);
+    return productsWithImages.sort((a, b) => b.dateListed - a.dateListed);
   },
 });
 
@@ -42,6 +58,7 @@ export const create = mutation({
     productName: v.string(),
     pricePerUnit: v.number(),
     quantity: v.number(),
+    imageId: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
     const user = await getAuthenticatedUser(ctx, args.token);
@@ -61,6 +78,7 @@ export const create = mutation({
       productName: args.productName,
       pricePerUnit: args.pricePerUnit,
       quantity: args.quantity,
+      imageId: args.imageId,
       isAvailable: true,
       dateListed: Date.now(),
     });
@@ -80,5 +98,12 @@ export const remove = mutation({
     if (!product || product.farmerId !== user._id) throw new Error("Product not found or unauthorized");
 
     await ctx.db.delete(args.id);
+  },
+});
+
+export const generateUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.storage.generateUploadUrl();
   },
 });

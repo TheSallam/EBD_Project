@@ -8,6 +8,8 @@ import BuyerMarketplacePage from "./pages/BuyerMarketplacePage";
 import AdminVerificationPage from "./pages/AdminVerificationPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import { useAuthUser, isLoggedIn } from "./lib/auth";
+import { useTranslation } from "react-i18next";
+import { useEffect } from "react";
 
 // IMPORT BOTH LOGOS
 import logoLight from "./assets/logo-light.png";
@@ -15,6 +17,12 @@ import logoDark from "./assets/logo-dark.png";
 
 function App() {
   const user = useAuthUser();
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    document.documentElement.dir = i18n.language.startsWith('ar') ? 'rtl' : 'ltr';
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
 
   const RequireAuth = ({ children, role }) => {
     if (!isLoggedIn()) return <Navigate to="/login" replace />;

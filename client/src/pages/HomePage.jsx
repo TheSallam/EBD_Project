@@ -3,12 +3,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useAuthUser } from "@/lib/auth";
+import { useTranslation } from "react-i18next";
 import { api as myApi } from "@/lib/api";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 function HomePage() {
   const navigate = useNavigate();
   const user = useAuthUser();
+  const { t } = useTranslation();
   
   const statsData = useQuery(api.stats.get);
   const loading = statsData === undefined;
@@ -28,15 +30,14 @@ function HomePage() {
       <section className="grid items-center gap-8 lg:grid-cols-[1.1fr,0.9fr]">
         <div className="space-y-4">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary shadow-sm">
-            Real-time, transparent agri-trade
+            {t("home.badge")}
           </div>
           {/* Changed text-white to text-foreground */}
           <h1 className="text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl">
-            Clean, modern marketplace for farmers, buyers, and admins
+            {t("home.title")}
           </h1>
           <p className="text-base leading-relaxed text-muted-foreground">
-            AgriFlow connects smallholder farmers directly with verified buyers. Clear pricing, secure payments,
-            verifications, and transaction history all in one place.
+            {t("home.subtitle")}
           </p>
           <div className="flex flex-wrap gap-3">
             <Button
@@ -45,7 +46,7 @@ function HomePage() {
               type="button"
               onClick={goFarmer}
             >
-              {user?.role === "farmer" ? "Go to Farmer dashboard" : "Enter as Farmer"}
+              {user?.role === "farmer" ? t("home.farmerBtn") : t("home.farmerEnter")}
             </Button>
             <Button
               size="lg"
@@ -54,7 +55,7 @@ function HomePage() {
               type="button"
               onClick={goBuyer}
             >
-              Browse marketplace
+              {t("home.browseBtn")}
             </Button>
             {user?.role === "admin" && (
               <Button
@@ -64,7 +65,7 @@ function HomePage() {
                 type="button"
                 onClick={goAdmin}
               >
-                Admin verification
+                {t("home.adminBtn")}
               </Button>
             )}
           </div>
@@ -73,42 +74,42 @@ function HomePage() {
         {/* Updated Card colors: bg-card, border-border */}
         <Card className="border border-border bg-card/50 shadow-xl shadow-primary/5 backdrop-blur-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Live Market Activity</CardTitle>
-            <CardDescription>Real-time data from the platform.</CardDescription>
+            <CardTitle className="text-lg">{t("home.liveActivity")}</CardTitle>
+            <CardDescription>{t("home.liveSub")}</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             
             {/* Stat Box */}
             <div className="rounded-lg border border-border bg-background p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Active listings</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("home.activeListings")}</p>
               <p className="mt-2 text-3xl font-bold text-foreground">
                 {loading ? "-" : stats.activeListings}
               </p>
-              <p className="text-xs text-primary">Available now</p>
+              <p className="text-xs text-primary">{t("home.availNow")}</p>
             </div>
 
             <div className="rounded-lg border border-border bg-background p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Verified buyers</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("home.verifiedBuyers")}</p>
               <p className="mt-2 text-3xl font-bold text-foreground">
                 {loading ? "-" : stats.verifiedBuyers}
               </p>
-              <p className="text-xs text-primary">KYC Approved</p>
+              <p className="text-xs text-primary">{t("home.kycApproved")}</p>
             </div>
 
             <div className="rounded-lg border border-border bg-background p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Transactions (7d)</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("home.tx7d")}</p>
               <p className="mt-2 text-3xl font-bold text-foreground">
                 {loading ? "-" : stats.recentTransactions}
               </p>
-              <p className="text-xs text-primary">Volume this week</p>
+              <p className="text-xs text-primary">{t("home.volWeek")}</p>
             </div>
 
             <div className="rounded-lg border border-border bg-background p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Total Revenue</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{t("home.totalRevenue")}</p>
               <p className="mt-2 text-3xl font-bold text-foreground">
-                {loading ? "-" : `${(stats.totalRevenue || 0).toLocaleString()} EGP`}
+                {loading ? "-" : `${(stats.totalRevenue || 0).toLocaleString()} ${t("market.egp")}`}
               </p>
-              <p className="text-xs text-primary">Lifetime volume</p>
+              <p className="text-xs text-primary">{t("home.lifetimeVol")}</p>
             </div>
 
           </CardContent>
@@ -118,12 +119,12 @@ function HomePage() {
       <section className="grid gap-4 md:grid-cols-2"> 
         {[
           {
-            title: "For Farmers",
-            body: "List crops quickly, reach verified buyers, and track payouts from one clean dashboard.",
+            title: t("home.forFarmersTitle"),
+            body: t("home.forFarmersDesc"),
           },
           {
-            title: "For Buyers",
-            body: "Discover credible suppliers, compare offers, and request deals with full transparency.",
+            title: t("home.forBuyersTitle"),
+            body: t("home.forBuyersDesc"),
           }
         ].map((item) => (
           <Card key={item.title} className="border border-border bg-card shadow-sm">
